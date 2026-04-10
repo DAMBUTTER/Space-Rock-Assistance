@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Material Tracker</title>
+
+<style>
+body {
+    font-family:'Segoe UI',Arial,sans-serif;
+    background:#0b0b0b;
+    color:#eaeaea;
+    padding:20px;
+    text-align:center;
+    zoom:70%;
+    font-size:16px;
+}
+
+input[type="number"] {
+    width:180px;
+    padding:10px;
+    border-radius:4px;
+    border:2px solid #ffff00;
+    background:#111;
+    color:#fff;
+    text-align:center;
+    font-size:18px;
+}
+
+button {
+    padding:6px 10px;
+    border-radius:4px;
+    border:1px solid #ff2a2a;
+    background:transparent;
+    color:#ff2a2a;
+    cursor:pointer;
+    font-size:16px;
+}
+button:hover {
+    background:#ff2a2a;
+    color:#000;
+}
+
+select, input[type="text"] {
+    background:#111;
+    color:#fff;
+    border:2px solid #ff2a2a;
+    border-radius:4px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+    border: 2px solid #ff2a2a;
+    font-size:16px;
+}
+
+th, td {
+    border: 1px solid #ff2a2a;
+    padding: 4px;
+    text-align: center;
+}
+
+th:first-child, td:first-child { width: 40px; }
+th:nth-child(2), td:nth-child(2) {
+    width: 120px;
+    text-align: left;
+    padding-left: 8px;
+}
+th:nth-child(3), td:nth-child(3) { width: 60px; }
+
+input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ff2a2a;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+}
+
+input[type="checkbox"]::before {
+    content: "+";
+    color: #ff2a2a;
+    font-weight: bold;
+    position: absolute;
+    top: -2px;
+    left: 3px;
+    font-size: 16px;
+}
+
+input[type="checkbox"]:checked {
+    border-color: #00ff88;
+    background: #00ff88;
+}
+
+input[type="checkbox"]:checked::before {
+    content: "✓";
+    color: #000;
+    left: 2px;
+}
+
+tbody tr:nth-child(even) { background: #111; }
+tbody tr:nth-child(odd) { background: #0e0e0e; }
+
+tr:hover td { background:#1a1a1a; }
+
+.sig { font-size: 14px; }
+
+tr.highlight { background-color: #b59b00; }
+tr.target { box-shadow: inset 0 -3px 0 darkred; }
+
+.cell-match {
+    background:#00ff88 !important;
+    color:#000;
+    font-weight:bold;
+}
+
+@keyframes flash {
+    0% { background-color: #b59b00; }
+    50% { background-color: transparent; }
+    100% { background-color: #b59b00; }
+}
+tr.flash { animation: flash 1s infinite; }
+
+@keyframes pinkFlash {
+    0% { background:#ff69b4; }
+    25% { background:#ff1493; }
+    50% { background:#ff85c1; }
+    75% { background:#ff4da6; }
+}
+.pink-party td {
+    animation: pinkFlash 0.4s infinite !important;
+    color:#000 !important;
+}
+
+#graphContainer {
+    width: 90%;
+    margin: 20px auto;
+}
+
+.bar {
+    background: #222;
+    margin: 4px 0;
+    height: 26px;
+    position: relative;
+    border: 1px solid #ff2a2a;
+}
+
+.bar span {
+    position: absolute;
+    left: 8px;
+    top: 3px;
+    font-size: 15px;
+}
+
+#legend {
+    margin-top: 10px;
+    font-size: 16px;
+    text-align: left;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Material Signature Tracker</h2>
+
+<input type="number" id="signatureInput" placeholder="Signature">
+<button onclick="generateGraph()">Generate Graph</button>
+<button onclick="copyData()">Copy Data</button>
+
+<br><br>
+
+<label>Star System:</label>
+<select id="systemSelect">
+    <option>Pyro</option>
+    <option>Nyx</option>
+    <option>Stanton</option>
+</select>
+
+<label style="margin-left:20px;">Specific Location:</label>
+<input type="text" id="locationInput" placeholder="Enter location" style="width:220px; padding:8px;">
+
+<table>
+<thead>
+<tr>
+    <th>Target</th>
+    <th>Material</th>
+    <th>Count</th>
+    <th>S1</th><th>S2</th><th>S3</th><th>S4</th><th>S5</th>
+    <th>S6</th><th>S7</th><th>S8</th><th>S9</th><th>S10</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<div id="graphContainer"></div>
+<div id="legend"></div>
+
+<script>
+const data = [/* SAME DATA — UNCHANGED */ 
+{name:"Ice",values:[4300,8600,12900,17200,21500,25800,30100,34400,38700,43000],count:0},
+{name:"Aluminium",values:[4285,8570,12855,17140,21425,25710,29995,34280,38565,42850],count:0},
+{name:"Iron",values:[4270,8540,12810,17080,21350,25620,29890,34160,38430,42700],count:0},
+{name:"Silicon",values:[4255,8510,12765,17020,21275,25530,29785,34040,38295,42550],count:0},
+{name:"Copper",values:[4240,8480,12720,16960,21200,25440,29680,33920,38160,42400],count:0},
+{name:"Corundum",values:[4225,8450,12675,16900,21125,25350,29575,33800,38025,42250],count:0},
+{name:"Quartz",values:[4210,8420,12630,16840,21050,25260,29470,33680,37890,42100],count:0},
+{name:"Tin",values:[4195,8390,12585,16780,20975,25170,29365,33560,37755,41950],count:0},
+{name:"Hephaestanite",values:[4180,8360,12540,16720,20900,25080,29260,33440,37620,41800],count:0},
+{name:"Torite",values:[3900,7800,11700,15600,19500,23400,27300,31200,35100,39000],count:0},
+{name:"Agricium",values:[3885,7770,11655,15540,19425,23310,27195,31080,34965,38850],count:0},
+{name:"Tungsten",values:[3870,7740,11610,15480,19350,23220,27090,30960,34830,38700],count:0},
+{name:"Titanium",values:[3855,7710,11565,15420,19275,23130,26985,30840,34695,38550],count:0},
+{name:"Aslarite",values:[3840,7680,11520,15360,19200,23040,26880,30720,34560,38400],count:0},
+{name:"Laranite",values:[3825,7650,11475,15300,19125,22950,26775,30600,34425,38250],count:0},
+{name:"Bexalite",values:[3600,7200,10800,14400,18000,21600,25200,28800,32400,36000],count:0},
+{name:"Gold",values:[3585,7170,10755,14340,17925,21510,25095,28680,32265,35850],count:0},
+{name:"Borase",values:[3570,7140,10710,14280,17850,21420,24990,28560,32130,35700],count:0},
+{name:"Taranite",values:[3555,7110,10665,14220,17775,21330,24885,28440,31995,35550],count:0},
+{name:"Beryl",values:[3540,7080,10620,14160,17700,21240,24780,28320,31860,35400],count:0},
+{name:"Lindium",values:[3400,6800,10200,13600,17000,20400,23800,27200,30600,34000],count:0},
+{name:"Riccite",values:[3385,6770,10155,13540,16925,20310,23695,27080,30465,33850],count:0},
+{name:"Ouratite",values:[3370,6740,10110,13480,16850,20220,23590,26960,30330,33700],count:0},
+{name:"Savrillium",values:[3200,6400,9600,12800,16000,19200,22400,25600,28800,32000],count:0},
+{name:"Stieron",values:[3170,6340,9510,12680,15850,19020,22190,25360,28530,31700],count:0},
+{name:"Quantanium",values:[3170,6340,9510,12680,15850,19020,22190,25360,28530,31700],count:0}
+];
+
+const tbody=document.getElementById("tbody");
+
+data.forEach((mat,i)=>{
+    const row=document.createElement("tr");
+    row.innerHTML=`
+        <td><input type="checkbox" class="target"></td>
+        <td>${mat.name}</td>
+        <td class="count">0</td>
+        ${mat.values.map(v=>`<td class="sig">${v}</td>`).join("")}
+    `;
+    tbody.appendChild(row);
+});
+
+function triggerPinkParty(){
+    const rows=[...tbody.children];
+    rows.forEach(r=>r.classList.add("pink-party"));
+    setTimeout(()=>rows.forEach(r=>r.classList.remove("pink-party")),5000);
+}
+
+document.getElementById("signatureInput").addEventListener("input",function(){
+    const val=parseInt(this.value);
+
+    if(val===8008){ triggerPinkParty(); return; }
+
+    [...tbody.children].forEach((row,i)=>{
+        const mat=data[i];
+        const checkbox=row.querySelector(".target");
+        const cells=row.querySelectorAll("td");
+
+        row.classList.remove("highlight","flash");
+        cells.forEach(c=>c.classList.remove("cell-match"));
+
+        mat.values.forEach((v,j)=>{
+            if(v===val){
+                row.classList.add("highlight");
+                cells[j+3].classList.add("cell-match");
+                cells[1].classList.add("cell-match");
+
+                mat.count++;
+                row.querySelector(".count").textContent=mat.count;
+
+                if(checkbox.checked){
+                    row.classList.add("flash");
+                    setTimeout(()=>row.classList.remove("flash"),10000);
+                }
+            }
+        });
+    });
+});
+
+document.querySelectorAll(".target").forEach((box,i)=>{
+    box.addEventListener("change",()=>{
+        tbody.children[i].classList.toggle("target",box.checked);
+    });
+});
+
+function generateGraph(){
+    const container=document.getElementById("graphContainer");
+    const legend=document.getElementById("legend");
+
+    const system=document.getElementById("systemSelect").value;
+    const location=document.getElementById("locationInput").value;
+
+    container.innerHTML="";
+    legend.innerHTML="";
+
+    const header=document.createElement("div");
+    header.style.marginBottom="10px";
+    header.style.fontSize="18px";
+    header.innerHTML=`<b>System:</b> ${system} &nbsp;&nbsp; <b>Location:</b> ${location||"N/A"}`;
+    container.appendChild(header);
+
+    legend.innerHTML="<b>Legend:</b><br>";
+
+    const max=Math.max(...data.map(d=>d.count),1);
+
+    data.forEach(mat=>{
+        if(mat.count===0) return;
+
+        const bar=document.createElement("div");
+        bar.className="bar";
+        bar.style.width=(mat.count/max*100)+"%";
+
+        const label=document.createElement("span");
+        label.textContent=`${mat.name} (${mat.count})`;
+
+        bar.appendChild(label);
+        container.appendChild(bar);
+
+        legend.innerHTML+=`${mat.name}: ${mat.count}<br>`;
+    });
+}
+
+function copyData(){
+    const system=document.getElementById("systemSelect").value;
+    const location=document.getElementById("locationInput").value;
+
+    const text = `System: ${system}\nLocation: ${location||"N/A"}\n\n` +
+        data.map(m=>`${m.name}: ${m.count}`).join("\n");
+
+    navigator.clipboard.writeText(text);
+    alert("Copied!");
+
+    // ONLY CHANGE: reset counts after copy
+    data.forEach((mat, i) => {
+        mat.count = 0;
+        tbody.children[i].querySelector(".count").textContent = 0;
+    });
+}
+</script>
+
+</body>
+</html>

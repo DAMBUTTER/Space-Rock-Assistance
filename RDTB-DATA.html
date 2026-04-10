@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Material Graph Generator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { background:#111; color:white; font-family:Arial; }
+textarea { width:100%; height:200px; background:#222; color:white; }
+button { margin:10px 0; padding:10px; }
+canvas { margin-top:30px; }
+</style>
+</head>
+<body>
+
+<h2>Paste Raw Data</h2>
+<textarea id="input"></textarea>
+<br>
+<button onclick="generateGraphs()">Generate Graphs</button>
+<div id="graphs"></div>
+
+<script>
+function parseData(text) {
+    const blocks = text.split(/(?=System:)/i);
+    let results = {};
+
+    blocks.forEach(block => {
+        let systemMatch = block.match(/System:\s*(.*)/i);
+        let locationMatch = block.match(/Location:\s*(.*)/i);
+
+        if (!systemMatch || !locationMatch) return;
+
+        let system = systemMatch[1].trim();
+        let location = locationMatch[1].trim();
+        let key = system + " | " + location;
+
+        if (!results[key]) results[key] = {};
+
+        let lines = block.split("\n");
+
+        lines.forEach(line => {
+            let match = line.match(/^([A-Za-z]+):\s*(\d+)/);
+            if (match) {
+                let material = match[1];
+                let count = parseInt(match[2]);
+
+                if (!results[key][material]) {
+                    results[key][material] = 0;
+                }
+                results[key][material] += count;
+            }
+        });
+    });
+
+    return results;
+}
+
+function generateGraphs() {
+    const container = document.getElementById("graphs");
+    container.innerHTML = "";
+
+    const data = parseData(document.getElementById("input").value);
+
+    Object.keys(data).forEach((key, index) => {
+        const canvas = document.createElement("canvas");
+        canvas.id = "chart" + index;
+
+        // HALF SIZE
+        canvas.style.width = "600px";
+        canvas.style.height = "300px";
+
+        container.appendChild(canvas);
+
+        const labels = Object.keys(data[key]);
+        const values = Object.values(data[key]);
+
+        // FIND MAX + ADD 10 FOR Y AXIS
+        const maxValue = Math.max(...values);
+        const suggestedMax = maxValue + 10;
+        const titleText = key; // FIXED SCOPE ISSUE
+
+        new Chart(canvas.getContext("2d"), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: '#8B0000'
+                }]
+            },
+            options: {
+                responsive: false,
+                plugins: {
+                    legend: { display:false }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: 'white',
+                            autoSkip: false,
+                            maxRotation: 90,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        ticks: { color: 'white' },
+                        suggestedMax: suggestedMax
+                    }
+                }
+            },
+            plugins: [{
+                id: 'customLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    ctx.save();
+                    ctx.fillStyle = 'white';
+                    ctx.textAlign = 'center';
+
+                    chart.data.datasets[0].data.forEach((value, i) => {
+                        const meta = chart.getDatasetMeta(0);
+                        const x = meta.data[i].x;
+                        const y = meta.data[i].y - 5;
+                        ctx.fillText(value, x, y);
+                    });
+                }
+            },{
+                id: 'bottomTitle',
+                afterDraw(chart) {
+                    const { ctx, width, height } = chart;
+                    ctx.save();
+                    ctx.fillStyle = 'white';
+                    ctx.textAlign = 'center';
+                    ctx.font = '14px Arial';
+                    ctx.fillText(titleText, width / 2, height - 5);
+                }
+            }]
+        });
+    });
+}
+</script>
+
+</body>
+</html>
