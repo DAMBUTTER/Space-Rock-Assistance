@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rock Type Data</title>
+
+<style>
+body {
+    font-family:'Segoe UI',Arial,sans-serif;
+    background:#0b0b0b;
+    color:#eaeaea;
+    padding:20px;
+    text-align:center;
+}
+
+h2 { color:#ff2a2a; }
+
+input {
+    padding:10px;
+    width:260px;
+    background:#111;
+    border:2px solid #ff2a2a;
+    color:#fff;
+    border-radius:4px;
+    text-align:center;
+    font-size:16px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 95%;
+    margin: 20px auto;
+    border: 2px solid #ff2a2a;
+}
+
+th, td {
+    border: 1px solid #ff2a2a;
+    padding: 6px;
+    text-align: center;
+}
+
+th { background:#111; }
+
+tr:nth-child(even) { background:#111; }
+tr:nth-child(odd) { background:#0e0e0e; }
+
+tr:hover td {
+    background:#1a1a1a;
+}
+
+/* DARK CELL COLORS */
+.low { background:#1f2a30; color:#9fc3d1; }
+.medium { background:#3a3300; color:#ffe066; }
+.high { background:#3a0000; color:#ff6b6b; }
+.extreme { background:#2b0033; color:#ff66ff; }
+
+/* CLICK highlight */
+.highlight {
+    outline:2px solid #00ff88;
+}
+
+/* 🟡 ROW MATCH (NO !important anymore) */
+.row-match td:nth-child(-n+3) {
+    background:#5a4a00;
+}
+
+/* 🟢 CELL MATCH (always wins) */
+.search-hit {
+    background:#00ff88 !important;
+    color:#000;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Rock Type Data</h2>
+
+<input type="text" id="search" placeholder="Search material...">
+
+<table>
+<thead>
+<tr>
+<th>Primary</th>
+<th>2nd</th>
+<th>3rd</th>
+<th>RS</th>
+<th>Instability</th>
+<th>Resistance</th>
+<th>Density</th>
+</tr>
+</thead>
+
+<tbody id="tableBody"></tbody>
+</table>
+
+<script>
+const data = [
+{p:"Agricium",s:"Aslarite",t:"Titanium",rs:3885,i:"Medium",r:"High",d:"Medium"},
+{p:"Aluminum",s:"Corundum",t:"",rs:4285,i:"Low",r:"Low",d:"Low"},
+{p:"Aslarite",s:"Silicon",t:"Quartz",rs:3840,i:"Medium",r:"High",d:"Low"},
+{p:"Beryl",s:"",t:"",rs:3540,i:"Medium",r:"High",d:"Low"},
+{p:"Bexalite",s:"Gold",t:"Borase",rs:3600,i:"High",r:"High",d:"High"},
+{p:"Borase",s:"Bexalite",t:"Gold",rs:3570,i:"Low",r:"Medium",d:"Medium"},
+{p:"Copper",s:"Tin",t:"",rs:4240,i:"Low",r:"Low",d:"Medium"},
+{p:"Corundum",s:"Aluminum",t:"",rs:4225,i:"Low",r:"Low",d:"Low"},
+{p:"Gold",s:"Borase",t:"Bexalite",rs:3585,i:"Medium",r:"High",d:"High"},
+{p:"Hephaestanite",s:"Silicon",t:"Quartz",rs:4180,i:"Medium",r:"Low",d:"Low"},
+{p:"Ice",s:"",t:"",rs:4300,i:"Low",r:"Low",d:"Low"},
+{p:"Iron",s:"",t:"",rs:4270,i:"Low",r:"Low",d:"Medium"},
+{p:"Laranite",s:"Tungsten",t:"",rs:3825,i:"High",r:"Medium",d:"High"},
+{p:"Lindinium",s:"Tungsten",t:"",rs:3400,i:"Extreme",r:"Extreme",d:"High"},
+{p:"Ouralite",s:"Agricium",t:"",rs:3370,i:"Extreme",r:"High",d:"Low"},
+{p:"Quantanium",s:"Beryl",t:"",rs:3170,i:"High",r:"High",d:"High"},
+{p:"Quartz",s:"Hephaestanite",t:"Silicon",rs:4210,i:"Low",r:"Low",d:"Low"},
+{p:"Riccite",s:"Laranite",t:"",rs:3385,i:"Medium",r:"Extreme",d:"Medium"},
+{p:"Savrillium",s:"Gold",t:"",rs:3200,i:"Medium",r:"Extreme",d:"High"},
+{p:"Silicon",s:"Hephaestanite",t:"Quartz",rs:4255,i:"Low",r:"Low",d:"Low"},
+{p:"Stileron",s:"Taranite",t:"",rs:3185,i:"Low",r:"Extreme",d:"Medium"},
+{p:"Taranite",s:"",t:"",rs:3555,i:"Extreme",r:"High",d:"Medium"},
+{p:"Tin",s:"Copper",t:"",rs:4195,i:"Low",r:"Low",d:"Medium"},
+{p:"Titanium",s:"Aslarite",t:"Agricium",rs:3855,i:"Low",r:"Medium",d:"Medium"},
+{p:"Torite",s:"",t:"",rs:3900,i:"Extreme",r:"Medium",d:"Low"},
+{p:"Tungsten",s:"Laranite",t:"",rs:3870,i:"Low",r:"Low",d:"High"}
+];
+
+const tbody = document.getElementById("tableBody");
+
+function render(){
+    tbody.innerHTML = "";
+
+    data.forEach(mat=>{
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+        <td>${mat.p}</td>
+        <td>${mat.s}</td>
+        <td>${mat.t}</td>
+        <td>${mat.rs}</td>
+        <td class="${mat.i.toLowerCase()}">${mat.i}</td>
+        <td class="${mat.r.toLowerCase()}">${mat.r}</td>
+        <td class="${mat.d.toLowerCase()}">${mat.d}</td>
+        `;
+
+        row.addEventListener("click", ()=>{
+            row.classList.toggle("highlight");
+        });
+
+        tbody.appendChild(row);
+    });
+}
+
+/* 🔍 FINAL SEARCH */
+document.getElementById("search").addEventListener("input", e=>{
+    const value = e.target.value.toLowerCase();
+
+    document.querySelectorAll("#tableBody tr").forEach(row=>{
+        const cells = row.children;
+
+        const primary = cells[0];
+        const second = cells[1];
+        const third = cells[2];
+
+        // Reset
+        [primary, second, third].forEach(cell=>{
+            cell.classList.remove("search-hit");
+        });
+        row.classList.remove("row-match");
+
+        if(!value) return;
+
+        let matched = false;
+
+        if(primary.textContent.toLowerCase().includes(value)){
+            primary.classList.add("search-hit");
+            matched = true;
+        }
+        if(second.textContent.toLowerCase().includes(value)){
+            second.classList.add("search-hit");
+            matched = true;
+        }
+        if(third.textContent.toLowerCase().includes(value)){
+            third.classList.add("search-hit");
+            matched = true;
+        }
+
+        if(matched){
+            row.classList.add("row-match");
+        }
+    });
+});
+
+render();
+</script>
+
+</body>
+</html>
