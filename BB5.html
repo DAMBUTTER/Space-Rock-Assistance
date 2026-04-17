@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bounty Board</title>
+  <style>
+body {
+    font-family:'Segoe UI',Arial,sans-serif;
+    background:#0b0b0b;
+    color:#eaeaea;
+    padding:20px;
+    text-align:center;
+    zoom:80%;
+}
+
+h1 { margin-bottom:10px; }
+
+#loginBox, #formBox { margin: 15px; }
+
+input, select {
+    background:#111;
+    color:#fff;
+    border:2px solid #ff2a2a;
+    border-radius:4px;
+    padding:8px;
+}
+
+input[type="number"] {
+    width:180px;
+    text-align:center;
+}
+
+button {
+    padding:6px 10px;
+    border-radius:4px;
+    border:1px solid #ff2a2a;
+    background:transparent;
+    color:#ff2a2a;
+    cursor:pointer;
+}
+button:hover {
+    background:#ff2a2a;
+    color:#000;
+}
+
+select {
+    border:2px solid #ff2a2a;
+}
+
+table {
+    border-collapse: collapse;
+    width: 95%;
+    margin: auto;
+    border: 2px solid #ff2a2a;
+}
+
+th, td {
+    border: 1px solid #ff2a2a;
+    padding: 6px;
+    text-align: center;
+}
+
+th {
+    background:#111;
+}
+
+tbody tr:nth-child(even) { background: #111; }
+tbody tr:nth-child(odd) { background: #0e0e0e; }
+
+tr:hover td { background:#1a1a1a; }
+
+input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ff2a2a;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+}
+
+input[type="checkbox"]::before {
+    content: "+";
+    color: #ff2a2a;
+    font-weight: bold;
+    position: absolute;
+    top: -2px;
+    left: 3px;
+}
+
+input[type="checkbox"]:checked {
+    border-color: #00ff88;
+    background: #00ff88;
+}
+
+input[type="checkbox"]:checked::before {
+    content: "✓";
+    color: #000;
+    left: 2px;
+}
+
+.doneRow {
+    opacity:0.5;
+    text-decoration:line-through;
+}
+
+.lowTime {
+    color:#ff2a2a;
+    font-weight:bold;
+}
+.sideNote {
+    position: fixed;
+    right: 10px;
+    top: 40px;
+    width: 240px;
+    border: 2px solid #ff2a2a;
+    background: #111;
+    padding: 10px;
+    text-align: left;
+    font-size: 13px;
+    box-shadow: 0 0 10px rgba(255,42,42,0.3);
+}
+
+.sideNote h3 {
+    margin-top: 0;
+    color: #ff2a2a;
+    font-size: 16px;
+}
+</style>
+</head>
+<body>
+
+<div class="sideNote">
+  <h3>Notice</h3>
+  <p>When completing a bounty, contact the requesting user.</p>
+  <p>They will confirm and tick the done box.</p>
+</div>
+
+<h1>Bounty Board</h1>
+
+<div id="loginBox">
+  <input id="username" placeholder="Enter name">
+  <button onclick="login()">Enter</button>
+  <p id="userDisplay"></p>
+</div>
+
+<div id="formBox">
+  <select id="materialSelect"></select>
+  <input id="scuInput" type="number" placeholder="SCU Needed">
+  <input id="qualityInput" type="number" placeholder="Quality (0-10000)">
+  <button onclick="addRequest()">Add Request</button>
+</div>
+
+<table id="board">
+  <thead>
+    <tr>
+      <th>User</th>
+      <th>Material</th>
+      <th>SCU</th>
+      <th>Quality</th>
+      <th>Done</th>
+      <th>Time Left</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+
+const materials = ["Ice","Aluminium","Iron","Silicon","Copper","Corundum","Quartz","Tin","Hephaestanite","Torite","Agricium","Tungsten","Titanium","Aslarite","Laranite","Bexalite","Gold","Borase","Taranite","Beryl","Lindium","Riccite","Ouratite","Savrillium","Stieron","Quantanium"];
+
+let currentUser = null;
+let requests = [];
+
+function initMaterials(){
+  const select = document.getElementById("materialSelect");
+  select.innerHTML = "";
+  materials.forEach(mat => {
+    let opt = document.createElement("option");
+    opt.value = mat;
+    opt.textContent = mat;
+    select.appendChild(opt);
+  });
+}
+
+function login(){
+  const name = document.getElementById("username").value.trim();
+  if(!name) return alert("Enter a name");
+  currentUser = name;
+  document.getElementById("userDisplay").innerText = "Logged in as " + name;
+}
+
+function addRequest(){
+  if(!currentUser) return alert("Login first");
+
+  const material = document.getElementById("materialSelect").value;
+  const scu = parseInt(document.getElementById("scuInput").value);
+  const quality = parseInt(document.getElementById("qualityInput").value);
+
+  if(!scu || scu <= 0) return alert("Invalid SCU");
+  if(isNaN(quality) || quality < 0 || quality > 10000) return alert("Quality must be 0-10000");
+
+  requests.push({
+    id: Date.now() + Math.random(),
+    user: currentUser,
+    material,
+    scu,
+    quality,
+    done: false,
+    createdAt: Date.now()
+  });
+
+  save();
+  render();
+}
+
+function toggleDone(id){
+  const r = requests.find(x => x.id === id);
+  if(!r) return;
+
+  r.done = !r.done;
+
+  if(r.done){
+    r.doneAt = Date.now();
+
+    setTimeout(()=>{
+      requests = requests.filter(x => x.id !== id);
+      save();
+      render();
+    }, 20000);
+  }
+
+  save();
+  render();
+}
+
+function removeRequest(id){
+  const r = requests.find(x => x.id === id);
+  if(!r) return;
+  if(r.user !== currentUser) return alert("Only your requests");
+
+  requests = requests.filter(x => x.id !== id);
+  save();
+  render();
+}
+
+function formatTime(ms){
+  let totalSeconds = Math.floor(ms/1000);
+  let h = Math.floor(totalSeconds/3600);
+  let m = Math.floor((totalSeconds % 3600)/60);
+  let s = totalSeconds % 60;
+
+  return String(h).padStart(2,'0') + ":" +
+         String(m).padStart(2,'0') + ":" +
+         String(s).padStart(2,'0');
+}
+
+function render(){
+  const tbody = document.querySelector("#board tbody");
+  tbody.innerHTML = "";
+
+  const now = Date.now();
+
+  requests = requests.filter(r => (now - r.createdAt) < 7*24*60*60*1000);
+
+  requests.forEach(r => {
+    let row = document.createElement("tr");
+
+    if(r.done){
+      row.style.opacity = "0.5";
+      row.style.textDecoration = "line-through";
+    }
+
+    let timeLeft = "";
+
+    if(r.done && r.doneAt){
+      const remaining = Math.max(0, 20000 - (now - r.doneAt));
+      timeLeft = formatTime(remaining);
+    } else {
+      const remaining = Math.max(0, (7*24*60*60*1000) - (now - r.createdAt));
+      timeLeft = formatTime(remaining);
+    }
+
+    row.innerHTML = `
+      <td>${r.user}</td>
+      <td>${r.material}</td>
+      <td>${r.scu}</td>
+      <td>${r.quality}</td>
+      <td><input type="checkbox" ${r.done ? "checked" : ""} onchange="toggleDone(${r.id})"></td>
+      <td>${timeLeft}</td>
+      <td>${r.user === currentUser ? `<button onclick="removeRequest(${r.id})">Remove</button>` : "Locked"}</td>
+    `;
+
+    tbody.appendChild(row);
+  });
+
+  save();
+}
+
+function save(){
+  localStorage.setItem("bountyRequests", JSON.stringify(requests));
+}
+
+function load(){
+  let data = localStorage.getItem("bountyRequests");
+  if(data){
+    requests = JSON.parse(data);
+  }
+}
+
+initMaterials();
+load();
+render();
+
+setInterval(render,1000);
+
+</script>
+
+</body>
+</html>
