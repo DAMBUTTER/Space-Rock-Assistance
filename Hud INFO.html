@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HUD Information</title>
+
+<style>
+    body {
+        margin: 0;
+        background-color: #05070a;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #e6e6e6;
+        text-align: center;
+    }
+
+    header {
+        padding: 25px 10px;
+        border-bottom: 2px solid #ff1a1a;
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        letter-spacing: 2px;
+        color: #ffffff;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: auto;
+        padding: 20px;
+    }
+
+    .image-box {
+        margin-bottom: 40px;
+        padding: 10px;
+        background: linear-gradient(145deg, #070b10, #020304);
+        /* all borders removed */
+        box-shadow: 0 0 10px rgba(255,0,0,0.15);
+    }
+
+    .image-box img {
+        width: 100%;
+        max-width: 1000px;
+        /* no borders at all */
+        box-shadow: none;
+    }
+
+    .image-box:hover {
+        box-shadow: 0 0 20px rgba(255,0,0,0.25);
+        transition: 0.3s;
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>HUD Information</h1>
+</header>
+
+<div class="container">
+
+    <div class="image-box">
+        <img src="basestats.png" alt="">
+    </div>
+
+    <div class="image-box">
+        <img src="Rockdata.png" alt="">
+    </div>
+
+    <div class="image-box">
+        <img src="laserhud1.png" alt="">
+    </div>
+
+    <div class="image-box">
+        <img src="StoreAllG.png" alt="">
+    </div>
+
+</div>
+
+</body>
+</html>
