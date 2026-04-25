@@ -50,14 +50,29 @@ body {
 <body>
 
 <div id="nav">
+    <!-- NEW FRONT PAGE BUTTON -->
+    <button onclick="show('front')">Frontpage</button>
+
     <button onclick="show('tracker')">Tracker</button>
     <button onclick="show('raw')">Raw Data</button>
     <button onclick="show('rock')">Rock Type</button>
-    <button onclick="show('hud')">HUD Info</button> <!-- NEW BUTTON -->
+    <button onclick="show('hud')">HUD Info</button>
+
+    <!-- EVEN LEGION BUTTON -->
+    <button onclick="window.open('https://evenlegion.org/', '_blank')">Even Legion</button>
+
+    <!-- WHERE TO MINE BUTTON -->
+    <button onclick="window.open('https://scmdb.net/?page=mine', '_blank')">Where to mine</button>
+
+    <!-- UEX BUTTON -->
+    <button onclick="window.open('https://uexcorp.space/commodities/home/tab/ranking/', '_blank')">UEX</button>
 </div>
 
+<!-- FRONT PAGE (DEFAULT) -->
+<iframe id="front" class="frame active" src="frontpage.html"></iframe>
+
 <!-- PROGRAM 1 -->
-<iframe id="tracker" class="frame active" src="YR-DATA8.0.html"></iframe>
+<iframe id="tracker" class="frame" src="YR-DATA8.0.html"></iframe>
 
 <!-- PROGRAM 2 -->
 <iframe id="raw" class="frame" src="RDTB-DATA.html"></iframe>
@@ -65,7 +80,7 @@ body {
 <!-- PROGRAM 3 -->
 <iframe id="rock" class="frame" src="WHATTHEROCK2.1.html"></iframe>
 
-<!-- NEW PROGRAM -->
+<!-- PROGRAM 4 -->
 <iframe id="hud" class="frame" src="Hud INFO.html"></iframe>
 
 <script>
