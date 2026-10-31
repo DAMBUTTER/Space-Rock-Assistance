@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ores</title>
+<style>
+:root {
+  color-scheme: dark;
+  --site-primary: #ff2a2a;
+  --site-on-primary: #000000;
+  --site-secondary: #111111;
+  --site-on-secondary: #eaeaea;
+  --site-background: #0b0b0b;
+  --site-on-background: #eaeaea;
+  --site-font-body: 'Segoe UI', Arial, sans-serif;
+  --site-font-heading: 'Segoe UI', Arial, sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+}
+* { box-sizing: border-box; }
+html { min-height: 100%; background: #0b0b0b; }
+body { margin: 0; font-family: var(--site-font-body); color: #eaeaea; background: #0b0b0b; }
+.app { min-height: 100vh; width: 100%; padding: 16px; background-color: #0b0d0d; color: var(--site-on-background); border-radius: 0; border-left: 6px solid #760000; }
+.panel { max-width: 1120px; margin: 0 auto; overflow: hidden; border: 1px solid #b90000; border-radius: 0; background: #0b0d0d; }
+.panel-header { display: none; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; white-space: nowrap; }
+th, td { padding: 10px 12px; text-align: center; border: 1px solid #7f2424; font-weight: 400; }
+thead th { font-weight: 600; background: #090b0b; }
+th:first-child, td:first-child { text-align: left; min-width: 118px; }
+tbody tr:nth-child(even) { background: #0d1010; }
+tbody tr:nth-child(odd) { background: #0b0d0d; }
+tbody tr { transition: background-color .12s ease; }
+tbody tr:hover { background: #151818; }
+tbody tr:last-child td { border-bottom: 0; }
+.ore-link { color: #ff3434; text-decoration: none; }
+.ore-link:hover { text-decoration: underline; }
+.tier-f, .tier-e { color: #ffffff; }
+.tier-d { color: #ffff00; }
+.tier-c { color: #00ff00; }
+.tier-b { color: #168cff; }
+.tier-a { color: #bd70ff; }
+.tier-s { color: #ffd700; }
+.tier-perfect { color: #8b0000; }
+.toolbar { display: flex; justify-content: flex-end; padding: 10px 12px; border-bottom: 1px solid #7f2424; background: #090b0b; }
+.search { width: min(100%, 260px); padding: 8px 10px; border: 1px solid #b90000; border-radius: 0; background: #090b0b; color: #ffffff; font: inherit; outline-offset: 2px; }
+.search:focus { outline: 1px solid #ff3434; }
+.search-hint { margin-right: auto; align-self: center; color: #bdbdbd; font-size: 12px; }
+tbody tr.search-match td { background: #202020; box-shadow: inset 0 1px 0 #e1c300, inset 0 -1px 0 #e1c300; }
+tbody tr.search-match td:first-child { box-shadow: inset 3px 0 0 #e1c300, inset 0 1px 0 #e1c300, inset 0 -1px 0 #e1c300; }
+@media (max-width: 600px) { .app { padding: 8px; } th, td { padding: 9px 10px; } table { font-size: 13px; } .panel-header { font-size: 17px; } }
+</style>
+</head>
+<body>
+<main class="app">
+  <section class="panel" aria-labelledby="page-title">
+    <header class="panel-header" id="page-title">Ores</header>
+    <div class="toolbar"><span class="search-hint">Search to highlight matching ores</span><input class="search" id="ore-search" type="search" placeholder="Search ores…" aria-label="Search ores"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Ore</th><th scope="col">F Tier</th><th scope="col">E Tier</th><th scope="col">D Tier</th><th scope="col">C Tier</th><th scope="col">B Tier</th><th scope="col">A Tier</th><th scope="col">S Tier</th><th scope="col">Perfect</th></tr></thead>
+        <tbody id="ore-rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script>
+const ores = [
+  ["Agricium",346,588,667,796,852,943,971,1000],
+  ["Aluminum",318,511,614,783,896,919,953,1000],
+  ["Aslarite",287,575,602,741,854,927,963,1000],
+  ["Beryl",324,547,677,717,860,937,955,1000],
+  ["Bexalite",302,597,632,756,875,941,959,1000],
+  ["Borase",359,584,676,743,892,903,976,1000],
+  ["Copper",359,593,652,742,855,917,958,1000],
+  ["Corundum",318,504,665,793,886,904,971,1000],
+  ["Gold",359,553,644,786,864,916,959,1000],
+  ["Hephaestanite",330,572,692,758,896,916,975,1000],
+  ["Iron",325,521,664,710,874,907,970,1000],
+  ["Laranite",298,510,698,707,858,910,975,1000],
+  ["Lindinium",305,585,618,729,853,930,954,1000],
+  ["Ouratite",310,523,647,779,860,912,960,1000],
+  ["Pressurized Ice",322,561,659,714,873,922,966,1000],
+  ["Quantanium",344,514,669,762,852,901,974,1000],
+  ["Quartz",330,552,641,710,899,914,969,1000],
+  ["Riccite",325,525,671,743,870,942,965,1000],
+  ["Saldynium",301,575,674,757,861,938,955,1000],
+  ["Savrillium",322,580,636,776,878,905,967,1000],
+  ["Silicon",310,510,672,782,889,926,968,1000],
+  ["Stileron",330,517,681,747,874,947,972,1000],
+  ["Taranite",310,525,646,718,853,925,957,1000],
+  ["Tin",340,537,664,704,880,940,964,1000],
+  ["Titanium",295,516,622,784,866,916,959,1000],
+  ["Torite",262,528,661,785,873,944,951,1000],
+  ["Tungsten",363,530,662,787,858,902,964,1000]
+];
+const body = document.getElementById('ore-rows');
+function renderRows(query = '') {
+  const q = query.trim().toLowerCase();
+  body.replaceChildren();
+  ores.forEach(ore => {
+    const row = document.createElement('tr');
+    if (q && ore[0].toLowerCase().includes(q)) row.classList.add('search-match');
+    ore.forEach((value, index) => {
+      const cell = document.createElement('td');
+      if (index === 0) {
+        const link = document.createElement('a');
+        link.className = 'ore-link';
+        link.href = '#';
+        link.textContent = value;
+        link.addEventListener('click', event => event.preventDefault());
+        cell.appendChild(link);
+      } else {
+        cell.textContent = value;
+        const tierClasses = ['', 'tier-f', 'tier-e', 'tier-d', 'tier-c', 'tier-b', 'tier-a', 'tier-s', 'tier-perfect'];
+        cell.classList.add(tierClasses[index]);
+      }
+      row.appendChild(cell);
+    });
+    body.appendChild(row);
+  });
+}
+document.getElementById('ore-search').addEventListener('input', event => renderRows(event.target.value));
+renderRows();
+</script>
+</body>
+</html>
